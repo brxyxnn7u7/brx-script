@@ -7,7 +7,7 @@ local cIcon = addIcon("cI",{text="Cave\nBot",switchable=false,moveable=true}, fu
     CaveBot.setOff()
   end
 end)
-cIcon:setSize({height=20,width=75})
+cIcon:setSize({height=80,width=80})
 cIcon.text:setFont('verdana-11px-rounded')
 
 local tIcon = addIcon("tI",{text="Target\nBot",switchable=false,moveable=true}, function()
