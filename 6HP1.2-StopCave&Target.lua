@@ -18,7 +18,7 @@ local tIcon = addIcon("tI",{text="Target\nBot",switchable=false,moveable=true}, 
     g_game.attack(nil)
   end
 end)
-tIcon:setSize({height=20,width=50})
+tIcon:setSize({height=10,width=50})
 tIcon.text:setFont('verdana-11px-rounded')
 
 macro(50,function()
