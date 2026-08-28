@@ -5,9 +5,9 @@ macro(50, "Force Hold WG", function()
   for _, candidate in ipairs(storage.WGPoses) do
     local wgTile = g_map.getTile(candidate)
     if wgTile and wgTile:canShoot() then
-      if wgTile:getTopUseThing():getId() ~= 2130 then
+      if wgTile:getTopUseThing():getId() ~= 2129 then
         wgTile:setText("Force WG")
-        useWith(3156, wgTile:getGround())
+        useWith(3180, wgTile:getGround())
       end
     end
   end
