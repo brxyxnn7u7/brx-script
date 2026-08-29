@@ -9,7 +9,7 @@ local cIcon = addIcon("cI",{text="Cave\nBot",switchable=false,moveable=false}, f
 end)
 cIcon:setSize({height=30,width=50})
 cIcon.text:setFont('verdana-11px-rounded')
-cIcon:setPosition({x=100, y=100})
+cIcon:setPosition({x=130, y=100})
 
 local tIcon = addIcon("tI",{text="Target\nBot",switchable=false,moveable=false}, function()
   if TargetBot.isOff() then 
@@ -20,7 +20,7 @@ local tIcon = addIcon("tI",{text="Target\nBot",switchable=false,moveable=false},
 end)
 tIcon:setSize({height=30,width=50})
 tIcon.text:setFont('verdana-11px-rounded')
-tIcon:setPosition({x=130, y=100})
+tIcon:setPosition({x=150, y=100})
 
 macro(50,function()
   if CaveBot.isOn() then
