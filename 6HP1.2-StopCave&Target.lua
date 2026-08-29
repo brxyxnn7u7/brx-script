@@ -7,7 +7,7 @@ local cIcon = addIcon("cI",{text="Cave\nBot",switchable=false,moveable=true}, fu
     CaveBot.setOff()
   end
 end)
-cIcon:setSize({height=10,width=50})
+cIcon:setSize({height=20,width=20})
 cIcon.text:setFont('verdana-11px-rounded')
 
 local tIcon = addIcon("tI",{text="Target\nBot",switchable=false,moveable=true}, function()
@@ -18,7 +18,7 @@ local tIcon = addIcon("tI",{text="Target\nBot",switchable=false,moveable=true}, 
     g_game.attack(nil)
   end
 end)
-tIcon:setSize({height=20,width=50})
+tIcon:setSize({height=20,width=20})
 tIcon.text:setFont('verdana-11px-rounded')
 
 macro(50,function()
@@ -60,10 +60,10 @@ end
 -- la primera vez, tomamos la posicion que ya tenian los iconos como punto
 -- de partida, para no moverlos de sorpresa
 if iconPos.caveX == nil or iconPos.caveY == nil then
-  iconPos.caveX, iconPos.caveY = getCurrentPos(cIcon, 100, 100)
+  iconPos.caveX, iconPos.caveY = getCurrentPos(cIcon, 100, 200)
 end
 if iconPos.targetX == nil or iconPos.targetY == nil then
-  iconPos.targetX, iconPos.targetY = getCurrentPos(tIcon, 200, 200)
+  iconPos.targetX, iconPos.targetY = getCurrentPos(tIcon, 100, 300)
 end
 
 local function applyIconPositions()
