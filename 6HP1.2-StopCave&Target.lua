@@ -1,7 +1,7 @@
 setDefaultTab("HP")
 
 addIcon("CaveTargetIcon", {
-    item = {id=8154, count=1},
+    item = {id=10227, count=1},
     text = "Cave\nTarget"
 }, macro(200, function(m)
 
