@@ -1,13 +1,15 @@
 setDefaultTab("HP")
 
-addIcon("StopCTIcon", {item={id=10227, count=1}, text="Cavebot"}, macro(200, function(m)
-    CaveBot.setOn()
-    TargetBot.setOn()
+addIcon("CaveTargetIcon", {
+    item = {id=8154, count=1},
+    text = "Cave\nTarget"
+}, macro(200, function(m)
 
-    schedule(200, function()
-        if m.isOff() then
-            CaveBot.setOff()
-            TargetBot.setOff()
-        end
-    end)
+    if CaveBot.isOn() or TargetBot.isOn() then
+        CaveBot.setOff()
+        TargetBot.setOff()
+    else
+        CaveBot.setOn()
+        TargetBot.setOn()
+    end
 end))
