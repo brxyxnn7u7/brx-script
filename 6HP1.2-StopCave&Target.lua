@@ -1,37 +1,25 @@
 setDefaultTab("HP")
 
-local cIcon = addIcon("cI",{text="Cave\nBot",switchable=false,moveable=false}, function()
-  if CaveBot.isOff() then 
+local cIcon = addIcon("CaveBotIcon", {
+    item = {id=8154, count=1},
+    text = "Cavebot"
+}, macro(200, function(m)
     CaveBot.setOn()
-  else 
-    CaveBot.setOff()
-  end
-end)
-cIcon:setSize({height=30,width=50})
-cIcon.text:setFont('verdana-11px-rounded')
-cIcon:setPosition({x=130, y=100})
+    schedule(200, function()
+        if m.isOff() then
+            CaveBot.setOff()
+        end
+    end)
+end))
 
-local tIcon = addIcon("tI",{text="Target\nBot",switchable=false,moveable=false}, function()
-  if TargetBot.isOff() then 
+local tIcon = addIcon("TargetBotIcon", {
+    item = {id=8160, count=1},
+    text = "Target"
+}, macro(200, function(m)
     TargetBot.setOn()
-  else 
-    TargetBot.setOff()
-  end
-end)
-tIcon:setSize({height=30,width=50})
-tIcon.text:setFont('verdana-11px-rounded')
-tIcon:setPosition({x=150, y=100})
-
-macro(50,function()
-  if CaveBot.isOn() then
-    cIcon.text:setColoredText({"CaveBot\n","white","ON","green"})
-  else
-    cIcon.text:setColoredText({"CaveBot\n","white","OFF","red"})
-  end
-
-  if TargetBot.isOn() then
-    tIcon.text:setColoredText({"Target\n","white","ON","green"})
-  else
-    tIcon.text:setColoredText({"Target\n","white","OFF","red"})
-  end
-end)
+    schedule(200, function()
+        if m.isOff() then
+            TargetBot.setOff()
+        end
+    end)
+end))
