@@ -5,11 +5,14 @@ addIcon("CaveTargetIcon", {
     text = "Cave\nTarget"
 }, macro(200, function(m)
 
-    if CaveBot.isOn() or TargetBot.isOn() then
-        CaveBot.setOff()
-        TargetBot.setOff()
-    else
-        CaveBot.setOn()
-        TargetBot.setOn()
-    end
+    CaveBot.setOn()
+    TargetBot.setOn()
+
+    schedule(200, function()
+        if m.isOff() then
+            CaveBot.setOff()
+            TargetBot.setOff()
+        end
+    end)
+
 end))
