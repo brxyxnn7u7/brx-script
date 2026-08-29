@@ -1,18 +1,15 @@
 setDefaultTab("HP")
 
-addIcon("CaveTargetIcon", {
-    item = {id=10227, count=1},
-    text = "Cave\nTarget"
-}, macro(200, function(m)
-
-    CaveBot.setOn()
-    TargetBot.setOn()
-
-    schedule(200, function()
-        if m.isOff() then
-            CaveBot.setOff()
-            TargetBot.setOff()
-        end
-    end)
-
-end))
+local icon = addIcon("CaveTargetIcon", {
+    item = {id = 10227, count = 1},
+    text = "Cave\nTarget",
+    switchable = true
+}, function(widget)
+    if widget.isOn() then
+        CaveBot.setOn()
+        TargetBot.setOn()
+    else
+        CaveBot.setOff()
+        TargetBot.setOff()
+    end
+end)
