@@ -4,7 +4,7 @@ local hold = 0
 local candidates = {}
 local shouldHold = false
 
-local holdMWIcon = addIcon("holdIcon",{item={id=3180, count=1}, text ="Hold MW/WG"}, macro(200, function(m)
+local holdMWIcon = addIcon("holdIcon",{item={id=3180, count=1}, text ="Hold MW"}, macro(200, function(m)
   shouldHold = true
   schedule(200, function()
     if m.isOn() then return end
