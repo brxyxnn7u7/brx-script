@@ -23,10 +23,13 @@ end
 local posSettings = storage.UtamoTime
 
 if not posSettings.posX then
-  posSettings.posX = 100
+  posSettings.posX = 1405
 end
 if not posSettings.posY then
-  posSettings.posY = 100
+  posSettings.posY = 370
+end
+if posSettings.autoEnabled == nil then
+  posSettings.autoEnabled = false
 end
 
 local timerState = {
@@ -34,7 +37,9 @@ local timerState = {
   active = false
 }
 
-local autoEnabled = false
+-- Restauramos el estado del switch guardado en storage (persiste entre
+-- muertes/relogs), en vez de arrancar siempre apagado.
+local autoEnabled = posSettings.autoEnabled
 local awaitingCast = false
 local RETRY_INTERVAL_MS = 1500 -- reintenta cada 1.5 segundos hasta confirmar el cast
 
@@ -235,6 +240,7 @@ end
 
 switchUi.sw.onClick = function(w)
   autoEnabled = not autoEnabled
+  posSettings.autoEnabled = autoEnabled -- persistimos el estado en storage
   w:setOn(autoEnabled)
 
   -- si lo prendes y no hay shield activo en este momento, insistimos
@@ -242,6 +248,13 @@ switchUi.sw.onClick = function(w)
   if autoEnabled and not timerState.active then
     requestCast()
   end
+end
+
+-- Restauramos el switch visual al estado guardado (por si veniamos de un
+-- relog/muerte con el auto-cast prendido) y retomamos el cast si hace falta.
+switchUi.sw:setOn(autoEnabled)
+if autoEnabled and not timerState.active then
+  requestCast()
 end
 
 -- Detecta cuando VOS decis "utamo vita" (o solo "utamo") en el chat.
