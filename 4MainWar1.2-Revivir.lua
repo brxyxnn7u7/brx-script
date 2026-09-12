@@ -1,107 +1,132 @@
 setDefaultTab("Main")
 -- ======================================================
---  REVIVE ITEM
+--  REVIVE ITEM (3 items independientes)
 --
---  Switch para prender/apagar + boton Setup donde configuras:
---  - Item a usar (arrastralo al cuadrito)
---  - Cooldown (segundos entre cada uso)
---  - Modo: HP% o Mana% (elegis cual de los dos monitorear)
---  - Umbral (%): a partir de que porcentaje usar el item
+--  Switch para prender/apagar + boton Setup con 3 filas.
+--  Cada fila tiene SU PROPIO item, cooldown, modo (HP% o
+--  Mana%) y umbral - totalmente independientes entre si.
 --
---  Cuando el HP (o Mana, segun el modo elegido) cae a ese % o
---  menos, usa el item automaticamente, respetando el cooldown
---  para no floodear.
+--  Cuando el HP (o Mana, segun el modo de esa fila) cae al
+--  umbral configurado o menos, usa ese item, respetando su
+--  propio cooldown.
 -- ======================================================
 
 local c = storage.reviveItem or {}
 storage.reviveItem = c
-c.itemId = c.itemId or 0
-c.cooldownSeconds = c.cooldownSeconds or 5
-c.mode = c.mode or "hp" -- "hp" o "mana"
-c.threshold = c.threshold or 30
-
-local lastUsedAt = 0
+c.items = c.items or {
+  { itemId = 0, cooldownSeconds = 5, mode = "hp", threshold = 30 },
+  { itemId = 0, cooldownSeconds = 5, mode = "hp", threshold = 30 },
+  { itemId = 0, cooldownSeconds = 5, mode = "hp", threshold = 30 },
+}
+c.lastUsedAt = c.lastUsedAt or { 0, 0, 0 }
 
 -- ---------------- INTERFAZ ----------------
+
+local function itemRowOtml(i, topAnchor, topMargin)
+  return string.format([[
+  Label
+    id: lblItem%d
+    text: Item %d:
+    anchors.left: parent.left
+    anchors.top: %s
+    margin-top: %d
+    margin-left: 12
+    width: 60
+
+  BotItem
+    id: itemSelector%d
+    anchors.left: lblItem%d.right
+    anchors.top: lblItem%d.top
+    margin-left: 8
+
+  Label
+    id: lblCooldown%d
+    text: CD (seg):
+    anchors.left: itemSelector%d.right
+    anchors.top: lblItem%d.top
+    margin-top: 5
+    margin-left: 16
+    width: 60
+
+  TextEdit
+    id: cooldownEdit%d
+    anchors.left: lblCooldown%d.right
+    anchors.right: parent.right
+    anchors.top: lblCooldown%d.top
+    margin-left: 8
+    margin-right: 12
+    height: 21
+
+  BotSwitch
+    id: modeHpSwitch%d
+    anchors.left: lblItem%d.left
+    anchors.top: itemSelector%d.bottom
+    margin-top: 10
+    width: 90
+    text: HP%%
+
+  BotSwitch
+    id: modeManaSwitch%d
+    anchors.left: modeHpSwitch%d.right
+    anchors.top: modeHpSwitch%d.top
+    margin-left: 6
+    width: 90
+    text: Mana%%
+
+  Label
+    id: lblThreshold%d
+    text: Umbral (%%):
+    anchors.left: modeManaSwitch%d.right
+    anchors.top: modeHpSwitch%d.top
+    margin-top: 5
+    margin-left: 16
+    width: 65
+
+  TextEdit
+    id: thresholdEdit%d
+    anchors.left: lblThreshold%d.right
+    anchors.right: parent.right
+    anchors.top: lblThreshold%d.top
+    margin-left: 8
+    margin-right: 12
+    height: 21
+]],
+    i, i, topAnchor, topMargin,
+    i, i, i,
+    i, i, i,
+    i, i, i,
+    i, i, i,
+    i, i, i,
+    i, i, i,
+    i, i, i,
+    i, i, i
+  )
+end
+
+local separatorOtml = [[
+  HorizontalSeparator
+    id: sepAFTER
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: ANCHORAFTER
+    margin-top: 14
+    margin-left: 12
+    margin-right: 12
+]]
+
+local row1 = itemRowOtml(1, "parent.top", 15)
+local sep1 = separatorOtml:gsub("ANCHORAFTER", "thresholdEdit1.bottom"):gsub("AFTER", "1")
+local row2 = itemRowOtml(2, "sep1.bottom", 14)
+local sep2 = separatorOtml:gsub("ANCHORAFTER", "thresholdEdit2.bottom"):gsub("AFTER", "2")
+local row3 = itemRowOtml(3, "sep2.bottom", 14)
 
 g_ui.loadUIFromString([[
 ReviveItemWin < MainWindow
   text: Revive Item Setup
-  size: 340 220
+  size: 400 375
   @onEscape: self:hide()
 
-  Label
-    id: lblItem
-    text: Item a usar:
-    anchors.top: parent.top
-    anchors.left: parent.left
-    margin-top: 15
-    margin-left: 12
-    width: 90
-
-  BotItem
-    id: itemSelector
-    anchors.left: lblItem.right
-    anchors.top: lblItem.top
-    margin-left: 8
-
-  Label
-    id: lblCooldown
-    text: Cooldown (seg):
-    anchors.left: lblItem.left
-    anchors.top: itemSelector.bottom
-    margin-top: 12
-    width: 90
-
-  TextEdit
-    id: cooldownEdit
-    anchors.left: lblCooldown.right
-    anchors.right: parent.right
-    anchors.top: lblCooldown.top
-    margin-left: 8
-    margin-right: 12
-    height: 21
-
-  Label
-    id: lblMode
-    text: Usar segun:
-    anchors.left: lblItem.left
-    anchors.top: lblCooldown.bottom
-    margin-top: 14
-    width: 90
-
-  BotSwitch
-    id: modeHpSwitch
-    anchors.left: lblMode.right
-    anchors.top: lblMode.top
-    margin-left: 8
-    width: 100
-    text: HP%
-
-  BotSwitch
-    id: modeManaSwitch
-    anchors.left: modeHpSwitch.right
-    anchors.top: lblMode.top
-    margin-left: 6
-    width: 100
-    text: Mana%
-
-  Label
-    id: lblThreshold
-    text: Umbral (%):
-    anchors.left: lblItem.left
-    anchors.top: modeHpSwitch.bottom
-    margin-top: 14
-    width: 90
-
-  TextEdit
-    id: thresholdEdit
-    anchors.left: lblThreshold.right
-    anchors.right: parent.right
-    anchors.top: lblThreshold.top
-    margin-left: 8
-    margin-right: 12
-    height: 21
+]] .. row1 .. sep1 .. row2 .. sep2 .. row3 .. [[
 
   Button
     id: closeButton
@@ -116,28 +141,49 @@ ReviveItemWin < MainWindow
 local win = UI.createWindow("ReviveItemWin")
 win:hide()
 
-local function refreshModeSwitches()
-  win.modeHpSwitch:setOn(c.mode == "hp")
-  win.modeManaSwitch:setOn(c.mode == "mana")
+local rowWidgets = {}
+for i = 1, 3 do
+  rowWidgets[i] = {
+    item = win["itemSelector" .. i],
+    cooldown = win["cooldownEdit" .. i],
+    modeHp = win["modeHpSwitch" .. i],
+    modeMana = win["modeManaSwitch" .. i],
+    threshold = win["thresholdEdit" .. i],
+  }
 end
 
-win.itemSelector:setItemId(c.itemId)
-win.itemSelector.onItemChange = function(w) c.itemId = w:getItemId() end
-
-win.cooldownEdit:setText(tostring(c.cooldownSeconds))
-win.cooldownEdit.onTextChange = function(w, text) c.cooldownSeconds = tonumber(text) or c.cooldownSeconds end
-
-win.thresholdEdit:setText(tostring(c.threshold))
-win.thresholdEdit.onTextChange = function(w, text) c.threshold = tonumber(text) or c.threshold end
-
-win.modeHpSwitch.onClick = function(w)
-  c.mode = "hp"
-  refreshModeSwitches()
+local function refreshRow(i)
+  local rw = rowWidgets[i]
+  local entry = c.items[i]
+  rw.item:setItemId(entry.itemId)
+  rw.cooldown:setText(tostring(entry.cooldownSeconds))
+  rw.modeHp:setOn(entry.mode == "hp")
+  rw.modeMana:setOn(entry.mode == "mana")
+  rw.threshold:setText(tostring(entry.threshold))
 end
 
-win.modeManaSwitch.onClick = function(w)
-  c.mode = "mana"
-  refreshModeSwitches()
+local function refreshAllRows()
+  for i = 1, 3 do
+    refreshRow(i)
+  end
+end
+
+for i = 1, 3 do
+  local rw = rowWidgets[i]
+  local entry = c.items[i]
+
+  rw.item.onItemChange = function(w) entry.itemId = w:getItemId() end
+  rw.cooldown.onTextChange = function(w, text) entry.cooldownSeconds = tonumber(text) or entry.cooldownSeconds end
+  rw.threshold.onTextChange = function(w, text) entry.threshold = tonumber(text) or entry.threshold end
+
+  rw.modeHp.onClick = function(w)
+    entry.mode = "hp"
+    refreshRow(i)
+  end
+  rw.modeMana.onClick = function(w)
+    entry.mode = "mana"
+    refreshRow(i)
+  end
 end
 
 win.closeButton.onClick = function()
@@ -170,10 +216,7 @@ ui.sw.onClick = function(w)
 end
 
 ui.setup.onClick = function()
-  win.itemSelector:setItemId(c.itemId)
-  win.cooldownEdit:setText(tostring(c.cooldownSeconds))
-  win.thresholdEdit:setText(tostring(c.threshold))
-  refreshModeSwitches()
+  refreshAllRows()
   win:show()
   win:raise()
   win:focus()
@@ -205,19 +248,20 @@ end
 macro(200, function()
   local cfg = storage.reviveItem
   if not cfg or not cfg.enabled then return end
-  if not cfg.itemId or cfg.itemId < 100 then return end
 
-  local percent = getCurrentPercent(cfg.mode)
-  if not percent then return end
-
-  if percent > tonumber(cfg.threshold) then return end
-
-  local cooldownMs = (tonumber(cfg.cooldownSeconds) or 5) * 1000
-  if now - lastUsedAt < cooldownMs then return end
-
-  local item = findItem(cfg.itemId)
-  if not item then return end
-
-  g_game.use(item)
-  lastUsedAt = now
+  for i, entry in ipairs(cfg.items) do
+    if entry.itemId and entry.itemId >= 100 then
+      local percent = getCurrentPercent(entry.mode)
+      if percent and percent <= tonumber(entry.threshold) then
+        local cooldownMs = (tonumber(entry.cooldownSeconds) or 5) * 1000
+        if now - (cfg.lastUsedAt[i] or 0) >= cooldownMs then
+          local item = findItem(entry.itemId)
+          if item then
+            g_game.use(item)
+            cfg.lastUsedAt[i] = now
+          end
+        end
+      end
+    end
+  end
 end)
