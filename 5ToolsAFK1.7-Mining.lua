@@ -125,6 +125,24 @@ ui.sw.onClick = function(w)
   w:setOn(c.enabled)
 end
 
+-- ---------------- API GLOBAL (para llamar desde otros scripts) ----------------
+
+Mining = Mining or {}
+
+Mining.setOff = function()
+  c.enabled = false
+  ui.sw:setOn(false)
+end
+
+Mining.setOn = function()
+  c.enabled = true
+  ui.sw:setOn(true)
+end
+
+Mining.isOn = function()
+  return c.enabled
+end
+
 win.pick:setItemId(c.pickId)
 win.pick.onItemChange = function(w) c.pickId = w:getItemId() end
 
@@ -156,19 +174,33 @@ end
 
 macro(500, function()
   local c = storage.mining
-  if not c or not c.enabled or not c.stones or #c.stones == 0 or (c.pickId or 0) < 100 then return end
+  if not c or not c.enabled or not c.stones or #c.stones == 0 or (c.pickId or 0) < 100 then
+    return
+  end
 
   local distance = tonumber(c.distance) or 1
+  local tiles = g_map.getTiles(posz())
 
-  for i, tile in ipairs(g_map.getTiles(posz())) do
+  for i, tile in ipairs(tiles) do
     for j, item in pairs(tile:getItems()) do
       if item then
         local id = item:getId()
         for _, entry in ipairs(c.stones) do
           local stoneId = type(entry) == "table" and entry.id or entry
           if stoneId == id then
-            if getDistanceBetween(pos(), tile:getPosition()) <= distance then
-              return useWith(c.pickId, item)
+            local d = getDistanceBetween(pos(), tile:getPosition())
+            if d <= distance then
+              local pick = findItem(c.pickId)
+              if not pick then
+                return
+              end
+
+              local ok = useWith(c.pickId, item)
+              if not ok then
+                g_game.useWith(pick, item)
+              end
+
+              return
             end
           end
         end
