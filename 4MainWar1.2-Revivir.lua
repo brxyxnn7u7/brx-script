@@ -18,7 +18,8 @@ c.items = c.items or {
   { itemId = 0, cooldownSeconds = 5, mode = "hp", threshold = 30 },
   { itemId = 0, cooldownSeconds = 5, mode = "hp", threshold = 30 },
 }
-c.lastUsedAt = c.lastUsedAt or { 0, 0, 0 }
+local lastUsedAt = { 0, 0, 0 }
+c.lastUsedAt = nil
 
 -- ---------------- INTERFAZ ----------------
 
@@ -245,20 +246,36 @@ local function getCurrentPercent(mode)
   return player:getHealthPercent()
 end
 
+-- Usa el item este donde este: mochila abierta, cerrada o slot de equipo.
+local function useItemById(itemId)
+  local item = findItem(itemId)
+  if item then
+    g_game.use(item)
+    return true
+  end
+  if pcall(function() use(itemId) end) then return true end
+  return pcall(function() g_game.useInventoryItem(itemId) end)
+end
+
 macro(200, function()
   local cfg = storage.reviveItem
-  if not cfg or not cfg.enabled then return end
+  if not cfg or not cfg.enabled or not cfg.items then return end
 
-  for i, entry in ipairs(cfg.items) do
-    if entry.itemId and entry.itemId >= 100 then
-      local percent = getCurrentPercent(entry.mode)
-      if percent and percent <= tonumber(entry.threshold) then
-        local cooldownMs = (tonumber(entry.cooldownSeconds) or 5) * 1000
-        if now - (cfg.lastUsedAt[i] or 0) >= cooldownMs then
-          local item = findItem(entry.itemId)
-          if item then
-            g_game.use(item)
-            cfg.lastUsedAt[i] = now
+  for i = 1, 3 do
+    local entry = cfg.items[i] or cfg.items[tostring(i)]
+    if entry then
+      local itemId = tonumber(entry.itemId) or 0
+      local threshold = tonumber(entry.threshold) or 0
+      if itemId >= 100 then
+        local percent = getCurrentPercent(entry.mode)
+        if percent and percent <= threshold then
+          local cooldownMs = (tonumber(entry.cooldownSeconds) or 5) * 1000
+          local last = lastUsedAt[i] or 0
+          if last > now then last = 0 end
+          if now - last >= cooldownMs then
+            if useItemById(itemId) then
+              lastUsedAt[i] = now
+            end
           end
         end
       end
