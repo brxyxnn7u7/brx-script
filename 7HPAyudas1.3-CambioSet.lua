@@ -1,12 +1,12 @@
 setDefaultTab("HP")
 -- ======================================================
---  EQUIP SET (6 sets independientes, con switch exclusivo)
+--  EQUIP SET (6 sets independientes, por palabra clave)
 --
---  Cada set tiene su propio switch y su propio boton
---  "Setup" (9 casilleros). Solo puede haber UN switch
---  prendido a la vez: si prendes el Set 2, el Set 1 (o
---  cualquier otro que estuviera prendido) se apaga solo, y
---  se equipa lo que hayas configurado en el Set 2.
+--  Cada set tiene su propia palabra clave, configurable
+--  desde su boton "Setup". Cuando ESCRIBES esa palabra en
+--  el chat (canal default) se equipa ese set. El mensaje
+--  se sigue enviando al chat normal, esto solo lo detecta
+--  de pasada.
 --
 --  Los sets se guardan con claves de texto (no con el numero
 --  de slot), porque los numeros de slot no son consecutivos y
@@ -38,17 +38,22 @@ local SLOT_KEYS = {
   { key = "ammo",   widget = "ammoItem",   slot = SlotAmmo },
 }
 
--- Set actualmente activo (0 = ninguno) y lista de switches, para poder
--- apagar todos los demas cuando prendes uno nuevo.
-storage.activeEquipSet = storage.activeEquipSet or 0
-local allSwitches = {}
+-- Lista de {keyword, equip} de todos los sets, y el listener del chat
+-- que revisa cada mensaje que TU escribes en el canal default.
+local keywordHandlers = {}
 
-local function setActiveSet(setNumber)
-  storage.activeEquipSet = setNumber
-  for i, sw in pairs(allSwitches) do
-    sw:setOn(i == setNumber)
+onTalk(function(name, level, mode, text, channelId, pos)
+  if not player or name ~= player:getName() then
+    return
   end
-end
+  local msg = text:lower():gsub("^%s+", ""):gsub("%s+$", "")
+  for _, h in ipairs(keywordHandlers) do
+    if msg == h.keyword:lower() then
+      h.equip()
+      break
+    end
+  end
+end)
 
 -- Crea un set completo: storage propio, ventana propia, switch propio y
 -- boton de Setup propio. setNumber tiene que ser distinto para cada uno
@@ -60,11 +65,7 @@ local function createEquipSet(setNumber)
   local c = storage[storageKey] or {}
   storage[storageKey] = c
   c.slots = c.slots or {}
-  c.name = c.name or ("Set " .. setNumber)
-
-  -- se declara aqui para que nameEdit.onTextChange (mas abajo) pueda
-  -- actualizar el texto del switch en cuanto exista
-  local switchWidget
+  c.keyword = c.keyword or ("set" .. setNumber)
 
   local function equipSavedSet()
     local delay = 0
@@ -80,6 +81,12 @@ local function createEquipSet(setNumber)
     end
   end
 
+  -- se guarda como tabla para poder actualizar la keyword en vivo
+  -- cuando el usuario la cambia en el TextEdit de abajo, y tambien
+  -- el texto del boton de Setup (se asigna mas abajo)
+  local handlerEntry = { keyword = c.keyword, equip = equipSavedSet }
+  table.insert(keywordHandlers, handlerEntry)
+
   -- ---------------- INTERFAZ (ventana de setup) ----------------
 
   g_ui.loadUIFromString(string.format([[
@@ -90,7 +97,7 @@ local function createEquipSet(setNumber)
 
   Label
     id: lblName
-    text: Nombre:
+    text: Palabra:
     anchors.top: parent.top
     anchors.left: parent.left
     margin-top: 12
@@ -98,7 +105,7 @@ local function createEquipSet(setNumber)
     width: 55
 
   TextEdit
-    id: nameEdit
+    id: keywordEdit
     anchors.left: lblName.right
     anchors.right: parent.right
     anchors.top: lblName.top
@@ -109,7 +116,7 @@ local function createEquipSet(setNumber)
   Label
     id: lblNeck
     text: Neck
-    anchors.top: nameEdit.bottom
+    anchors.top: keywordEdit.bottom
     anchors.left: parent.left
     margin-top: 15
     margin-left: 20
@@ -119,7 +126,7 @@ local function createEquipSet(setNumber)
   Label
     id: lblHead
     text: Head
-    anchors.top: nameEdit.bottom
+    anchors.top: keywordEdit.bottom
     anchors.left: lblNeck.right
     margin-top: 15
     margin-left: 20
@@ -129,7 +136,7 @@ local function createEquipSet(setNumber)
   Label
     id: lblFinger
     text: Ring
-    anchors.top: nameEdit.bottom
+    anchors.top: keywordEdit.bottom
     anchors.left: lblHead.right
     margin-top: 15
     margin-left: 20
@@ -156,7 +163,7 @@ local function createEquipSet(setNumber)
 
   Label
     id: lblRight
-    text: Weapon
+    text: Shield
     anchors.top: neckItem.bottom
     anchors.horizontalCenter: lblNeck.horizontalCenter
     margin-top: 12
@@ -174,7 +181,7 @@ local function createEquipSet(setNumber)
 
   Label
     id: lblLeft
-    text: Shield
+    text: Weapon
     anchors.top: neckItem.bottom
     anchors.horizontalCenter: lblFinger.horizontalCenter
     margin-top: 12
@@ -257,16 +264,7 @@ local function createEquipSet(setNumber)
   local win = UI.createWindow(windowClass)
   win:hide()
 
-  win.nameEdit:setText(c.name)
-  win.nameEdit.onTextChange = function(widget, text)
-    if text == "" then
-      text = "Set " .. setNumber
-    end
-    c.name = text
-    if switchWidget then
-      switchWidget:setText(text)
-    end
-  end
+  win.keywordEdit:setText(c.keyword)
 
   for _, sk in ipairs(SLOT_KEYS) do
     local w = win[sk.widget]
@@ -281,7 +279,7 @@ local function createEquipSet(setNumber)
   end
 
   local function openSetupWindow()
-    win.nameEdit:setText(c.name)
+    win.keywordEdit:setText(c.keyword)
     for _, sk in ipairs(SLOT_KEYS) do
       win[sk.widget]:setItemId(c.slots[sk.key] or 0)
     end
@@ -290,45 +288,32 @@ local function createEquipSet(setNumber)
     win:focus()
   end
 
-  -- ---------------- SWITCH + BOTON DE SETUP (una fila) ----------------
+  -- ---------------- BOTON DE SETUP ----------------
 
   local rowPanel = setupUI(string.format([[
 Panel
   height: 20
-  BotSwitch
-    id: setSwitch%d
-    anchors.left: parent.left
-    anchors.top: parent.top
-    width: 90
-    text: %s
   Button
     id: setupBtn%d
-    anchors.left: prev.right
+    anchors.left: parent.left
     anchors.right: parent.right
     anchors.top: parent.top
-    margin-left: 3
     height: 20
-    text: Setup
-]], setNumber, c.name, setNumber))
+    text: Set %d Setup (%s)
+]], setNumber, setNumber, c.keyword))
 
   local setupButton = rowPanel["setupBtn" .. setNumber]
-  switchWidget = rowPanel["setSwitch" .. setNumber]
-
-  allSwitches[setNumber] = switchWidget
-  switchWidget:setOn(storage.activeEquipSet == setNumber)
-
-  switchWidget.onClick = function(w)
-    if storage.activeEquipSet == setNumber then
-      -- ya estaba encendido: lo apagamos y queda sin set activo
-      setActiveSet(0)
-    else
-      setActiveSet(setNumber)
-      equipSavedSet()
-    end
-  end
-
   setupButton.onClick = function()
     openSetupWindow()
+  end
+
+  win.keywordEdit.onTextChange = function(widget, text)
+    if text == "" then
+      text = "set" .. setNumber
+    end
+    c.keyword = text
+    handlerEntry.keyword = text
+    setupButton:setText("Equip Set " .. setNumber .. " Setup (" .. text .. ")")
   end
 end
 
