@@ -4,7 +4,7 @@ setDefaultTab("Main")
 -- Detecta 1 player a tu lado y lo "arrastra" 1 sqm
 -----------------------------------------------------
 
-local INTERVAL = 200  -- ms entre intentos
+local INTERVAL = 1000  -- ms entre intentos
 
 macro(INTERVAL, "Drag Push", function()
   local me = g_game.getLocalPlayer()
