@@ -1,9 +1,9 @@
 setDefaultTab("Main")
 local NPCsAndCities = {
   ["Minoru"] = "Earth, terra, terrinha, konoha, snow random",
-  ["Captain Bluebear"] = "Venore, Carlin",
-  ["Captain Fearless"] = "Thais, Carlin",
-  ["Captain Greyhound"] = "Thais, Venore",
+  ["Captain Bluebear"] = "Ab'Dendriel, Ashmura, Carlin, Edron, Liberty Bay, Port Hope, Svargrond, Venore, Yalahar",
+  ["Captain Fearless"] = "Ab'Dendriel, Ankrahmun, Ashmura, Carlin, Darashia, Edron, Liberty Bay, Port Hope, Svargrond, Thais, Yalahar",
+  ["Captain Greyhound"] = "Ab'Dendriel, Ashmura, Edron, Svargrond, Thais, Venore, Yalahar",
 }
 
 local TravelWindow = setupUI([[
