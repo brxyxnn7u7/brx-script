@@ -3,6 +3,10 @@ local NPCsAndCities = {
   ["Minoru"] = "Earth, terra, terrinha, konoha, snow random",
   ["Captain Bluebear"] = "Ab'Dendriel, Ashmura, Carlin, Edron, Liberty Bay, Port Hope, Svargrond, Venore, Yalahar",
   ["Captain Fearless"] = "Ab'Dendriel, Ankrahmun, Ashmura, Carlin, Darashia, Edron, Liberty Bay, Port Hope, Svargrond, Thais, Yalahar",
+  ["Petros"] = "Ankrahmun, Liberty Bay, Port Hope, Venore",
+  ["Captain Sinbeard"] = "Ashmura, Darashia, Edron, Liberty Bay, Port Hope, Venore, Yalahar",
+  ["Karith"] = "Ab'Dendriel, Carlin, Edron, Liberty Bay, Port Hope, Svargrond, Venore, Yalahar",  
+  ["Captain Seahorse"] = "Ab'Dendriel, Ankrahmun, Ashmura, Carlin, Cormaya, Liberty Bay, Port Hope, Thais, Venore",
   ["Captain Greyhound"] = "Ab'Dendriel, Ashmura, Edron, Svargrond, Thais, Venore, Yalahar",
 }
 
